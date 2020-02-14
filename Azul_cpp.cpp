@@ -10,7 +10,7 @@ struct Korong
 };
 
 
-// 2. feladat
+// 2. feladat (Korongok tömbjének lefoglalása)
 Korong* Korongok(int _jatekosszam)
 {
 	int korongszam = 0;
@@ -38,21 +38,37 @@ Korong* Korongok(int _jatekosszam)
 
 }
 
-// 3. feladat
+// 3. feladat (Game strukt)
 struct Game
 {
-	Korong* korongok = Korongok(2);
-	int korongok_count = 5; //ez
+	Korong* korongok;
+	int korongok_count;
 	int kozos[6] = { 0, 0, 0, 0, 0, 0 };
 	int zsak[5] = { 20, 20, 20, 20, 20 };
 	int doboz[5] = { 0, 0, 0, 0, 0 };
 
-	public:
-		Game()
+	Game(int _jatekosszam)
+	{
+		korongok = Korongok(_jatekosszam);
+
+		switch (_jatekosszam)
 		{
-
+		case 2:
+			korongok_count = 5;
+			break;
+		case 3:
+			korongok_count = 7;
+			break;
+		case 4:
+			korongok_count = 9;
+			break;
+		default:
+			korongok_count = 5;
+			break;
 		}
+	}
 
+	~Game() { delete[] korongok; }
 };
 
 int Sum(int _array[])
@@ -64,37 +80,66 @@ int Sum(int _array[])
 	}
 	return sum;
 }
-
-// 1. feladat | 5. feladat
-char Huzas(Game _game)
+bool Korong_empty(Korong _korong)
 {
-	if (Sum(_game.zsak) == 0)
+	for (int i = 0; i < sizeof(_korong.elemek); i++)
+	{
+		if (_korong.elemek[i] != '-') return false;
+	}
+	return true;
+}
+bool Korong_contains(Korong _korong, char _szin)
+{
+	for (int i = 0; i < sizeof(_korong.elemek); i++)
+	{
+		if (_szin == _korong.elemek[i]) return true;
+	}
+	return false;
+}
+bool Kozos_contains(int _kozos[], char _szin)
+{
+	for (int i = 0; i < sizeof(_kozos) - 1; i++)
+	{
+		if (i = _szin - 65)
+		{
+			if (_kozos[i] > 0) return true;
+			else return false;
+		}
+	}
+	return false;
+}
+
+
+// 1. feladat | 5. feladat (Zsákból húzás)
+char Huzas(Game* _game)
+{
+	if (Sum(_game->zsak) == 0)
 	{
 		for (int i = 0; i < 5; i++)
 		{
-			_game.zsak[i] = _game.doboz[i];
-			_game.doboz[i] = 0;
+			_game->zsak[i] = _game->doboz[i];
+			_game->doboz[i] = 0;
 		}
 	}
 
 	char csempe = 'A';
-	int szam = rand() % Sum(_game.zsak);
+	int szam = rand() % Sum(_game->zsak);
 	int min = 20;
 
-	for (int i = 0; i < sizeof(_game.zsak); i++)
+	for (int i = 0; i < sizeof(_game->zsak); i++)
 	{
 		if (szam < min)
 		{
-			_game.zsak[i]--;
+			_game->zsak[i]--;
 			csempe = csempek[i];
 			break;
 		}
-		else min += _game.zsak[i];
+		else min += _game->zsak[i];
 	}
 	return csempe;
 }
 
-// 4. feladat
+// 4. feladat (Korongok és közös megjelenítése)
 void Draw_korongok(Game _game)
 {
 	for (int i = 0; i < _game.korongok_count; i++)
@@ -108,66 +153,91 @@ void Draw_korongok(Game _game)
 		cout << "\n";
 	}
 
-	cout << "Kozos:\t";
+	cout << "0. Kozos:\t";
 	for (int i = 0; i < sizeof(_game.kozos); i++)
 	{
 		for (int j = 0; j < _game.kozos[i]; j++)
 		{
 			switch (i)
 			{
-				case 0:
-					cout << "A";
-					break;
-				case 1:
-					cout << "B";
-					break;
-				case 2:
-					cout << "C";
-					break;
-				case 3:
-					cout << "D";
-					break;
-				case 4:
-					cout << "E";
-					break;
-				case 5:
-					cout << "1";
-					break;
+			case 0:
+				cout << "A";
+				break;
+			case 1:
+				cout << "B";
+				break;
+			case 2:
+				cout << "C";
+				break;
+			case 3:
+				cout << "D";
+				break;
+			case 4:
+				cout << "E";
+				break;
+			case 5:
+				cout << "X";
+				break;
 			}
 		}
 	}
 }
 
-// 6. feladat
-Game Elokeszit(Game _game)
+// 6. feladat (Forduló elõkészítése)
+void Elokeszit(Game* _game)
 {
-	for (int i = 0; i < _game.korongok_count; i++)
+	for (int i = 0; i < _game->korongok_count; i++)
 	{
 		for (int j = 0; j < 4; j++)
 		{
-			_game.korongok[i].elemek[j] = Huzas(_game);
+			_game->korongok[i].elemek[j] = Huzas(_game);
 		}
-		_game.kozos[5] = 1;
+		_game->kozos[5] = 1;
 	}
-
-	return _game;
 }
 
-// 7/1. feladat
+// 7-1. feladat (Player strukt)
 struct Player
 {
-	char fal[5][5] = { '.' };
-	char padlovonal[7] = { '_' };
-	char mintasorok[5][5] = { '-' };
-	int pontszam = 0;
+	char fal[5][5];
+	char padlovonal[7];
+	char mintasorok[5][5];
+	int pontszam;
 };
 
-// 7/2. feladat
+// 7-2. feladat (Player tömb lefoglalása)
 Player* Jatekosok(int _jatekosszam)
 {
-	return new Player[_jatekosszam];
+	Player* array = new Player[_jatekosszam];
+
+	for (int i = 0; i < _jatekosszam; i++)
+	{
+		//Fal feltöltése
+		for (int j = 0; j < 5; j++)
+		{
+			for (int k = 0; k < 5; k++) array[i].fal[j][k] = '-';
+		}
+
+		//Padlóvonal feltöltése
+		for (int j = 0; j < 7; j++)
+		{
+			array[i].padlovonal[j] = '-';
+		}
+
+		//Mintasorok feltöltése
+		for (int j = 0; j < 5; j++)
+		{
+			for (int k = 0; k < 5; k++) array[i].mintasorok[j][k] = '-';
+		}
+
+		//Kezõpontszám
+		array[i].pontszam = 0;
+	}
+
+	return array;
 }
 
+// 8. feladat (Player megjelenítése)
 void Draw_player(Player _player)
 {
 	cout << "\n";
@@ -178,7 +248,7 @@ void Draw_player(Player _player)
 	{
 		for (int j = 0; j < 5; j++)
 		{
-			if (_player.fal[i][j] == '.') cout << ". ";
+			if (_player.fal[i][j] == '-') cout << ". ";
 			else cout << _player.fal[i][j] << " ";
 		}
 		cout << " " << i + 1 << "  ";
@@ -191,19 +261,74 @@ void Draw_player(Player _player)
 	}
 	for (int i = 0; i < sizeof(_player.padlovonal); i++)
 	{
-		if (_player.padlovonal[i] == '_') cout << " _ ";
+		if (_player.padlovonal[i] == '-') cout << " _ ";
 		else cout << " " << _player.padlovonal[i] << " ";
 	}
 	cout << "\n";
 	cout << "-1 -1 -2 -2 -2 -3 -3";
 }
 
+// 9. feladat (Csempék választása)
+void Valasztas(Player* _player, Game* _game)
+{
+	int valasz_korong = -1;
+	char valasz_szin;
+	int valasz_mintasor = -1;
+	bool helyes = true;
+
+	Draw_korongok(*_game);
+
+	do
+	{
+		helyes = true;
+		cout << "\nValassz egy korongot: ";
+		cin >> valasz_korong;
+
+		if (valasz_korong <= -1 || valasz_korong > _game->korongok_count) helyes = false;
+		else if (valasz_korong == 0 && Sum(_game->kozos) == 0) helyes = false;
+		else if (Korong_empty(_game->korongok[valasz_korong])) helyes = false;
+	} while (!helyes);
+
+	do
+	{
+		helyes = true;
+		cout << "\nValassz egy szint: ";
+		cin >> valasz_szin;
+
+		if (valasz_szin >= 'a' && valasz_szin <= 'e') valasz_szin = toupper(valasz_szin);
+
+		if (valasz_korong != 0)
+		{
+			if (valasz_szin < 'A' && valasz_szin > 'E') helyes = false;
+			else if (!Korong_contains(_game->korongok[valasz_korong], valasz_szin)) helyes = false;
+		}
+		else
+		{
+			if (!Kozos_contains(_game->kozos, valasz_szin)) helyes = false;
+		}
+	} while (!helyes);
+
+	do
+	{
+		helyes = true;
+		cout << "\nValassz mintasort (0-padlovonal): ";
+		cin >> valasz_mintasor;
+
+		if (valasz_mintasor < 0 || valasz_mintasor > 5) helyes = false;
+		if (valasz_mintasor == 0)
+		{
+
+		}
+
+	} while (!helyes);
+
+}
+
 int main()
 {
-	Player jatekos;
+	int jatekosszam;
 
-	Game game;
-	game = Elokeszit(game);
-	Draw_korongok(game);
-	Draw_player(jatekos);
+	cout << "Jatekosok szama (2-4): ";
+	cin >> jatekosszam;
+
 }
