@@ -386,6 +386,107 @@ void Csempevalaszto(Player* player, Game* game)
 	}
 }
 
+void Csempe_kezeles(Player* player, Game* game)
+{
+	bool ok;
+	int oszlop;
+
+	for (int i = 0; i < player->mintasorok_count; i++)
+	{
+		if (player->mintasorok[i][i] != '-') //teli sor ellenorzese
+		{
+			do
+			{
+				ok = true;
+
+				cout << i + 1 << ". sorból melyik oszlopba? ";
+				cin >> oszlop;
+
+				if (oszlop < 1 || oszlop > 5) ok = false;
+				else 
+				{
+					for (int j = 0; j < player->fal_count; j++)
+					{
+						if (player->fal[j][oszlop] == player->mintasorok[i][0]) ok = false;
+					}
+				}
+			} while (!ok);
+
+			game->doboz[player->mintasorok[i][0] - 17] += i - 1;
+			player->fal[i][oszlop] = player->mintasorok[i][0];
+			for (int j = 0; j < i; j++)
+			{
+				player->mintasorok[i][j] = '-';
+			}
+		}
+	}
+}
+
+int Teli_sorok(Player* player)
+{
+	int n = 0;
+	bool teli = true;
+
+	for (int i = 0; i < player->fal_count; i++)
+	{
+		teli = true;
+		for (int j = 0; j < player->fal_count; j++)
+		{
+			if (player->fal[i][j] == '-')
+			{
+				teli = false;
+				break;
+			}
+		}
+		if (teli) n++;
+	}
+	return n;
+}
+
+int Teli_oszlopok(Player* player)
+{
+	int n = 0;
+	bool teli = true;
+
+	for (int i = 0; i < player->fal_count; i++)
+	{
+		teli = true;
+		for (int j = 0; j < player->fal_count; j++)
+		{
+			if (player->fal[j][i] == '-');
+			{
+				teli = false;
+				break;
+			}
+		}
+		if (teli) n++;
+	}
+	return n;
+}
+
+void Bonusz(Player* player, Game* game)
+{
+	int bonuszpontok = 0;
+
+	bonuszpontok += Teli_sorok(player) * 2;
+	bonuszpontok += Teli_oszlopok(player) * 2;
+
+	int csempek_szama[5] = { 0, 0, 0, 0, 0 };
+
+	for (int i = 0; i < player->fal_count; i++)
+	{
+		for (int j = 0; j < player->fal_count; j++)
+		{
+			if (player->fal[i][j] != '-') csempek_szama[player->fal[i][j] - 17]++;
+		}
+	}
+
+	for (int i = 0; i < 5; i++)
+	{
+		if (csempek_szama[i] >= 5) bonuszpontok += 10;
+	}
+}
+
 int main()
 {
 	srand(time(NULL));
@@ -408,3 +509,9 @@ int main()
 
 	Csempevalaszto(&players[0], &game);
 }
+
+// A-17 dolgok
+// Csempevalaszo javitani
+// Csempe kezelest atnezni
+// Bonuszt atnezni
+// Az egesz kodot atnezni es kiszepiteni
