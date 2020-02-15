@@ -4,6 +4,8 @@
 
 using namespace std;
 
+// A - 65
+
 int Sum(int array[], int n)
 {
 	int sum = 0;
@@ -24,14 +26,13 @@ struct Kozos
 {
 	int elemek[6] = { 0, 0, 0, 0, 0, 0 };
 	int elemek_count = 6;
-	bool jelzo = false; //ez lehet kell még
 };
 
 struct Player
 {
 	char fal[5][5];
 	int fal_count = 5;
-	char padlovonal[7];
+	char padlovonal[7] = { 0 };
 	int padlovonal_count = 7;
 	char mintasorok[5][5];
 	int mintasorok_count = 5;
@@ -48,9 +49,9 @@ bool Empty_korong(Korong korong)
 }
 bool Empty_kozos(Kozos kozos)
 {
-	for (int i = 0; i < kozos.elemek_count; i++)
+	for (int i = 0; i < kozos.elemek_count - 1; i++)
 	{
-		if (kozos.elemek[i] != '-') return false;
+		if (kozos.elemek[i] != 0) return false;
 	}
 	return true;
 }
@@ -64,10 +65,7 @@ bool Korong_contains(Korong korong, char c)
 }
 bool Kozos_contains(Kozos kozos, char c)
 {
-	for (int i = 0; i < kozos.elemek_count; i++)
-	{
-		if (kozos.elemek[i] == c) return true;
-	}
+	if (kozos.elemek[c - 65] > 0) return true;
 	return false;
 }
 bool Helyes_csempe(Player player, char c, int sor)
@@ -78,7 +76,7 @@ bool Helyes_csempe(Player player, char c, int sor)
 	}
 	for (int i = 0; i < player.fal_count; i++)
 	{
-		if (player.fal[sor][i] != '-' && player.fal[sor][i] != c) return false;
+		if (player.fal[sor][i] == c) return false;
 	}
 	return true;
 }
@@ -93,19 +91,73 @@ int Csempe_szamol(Korong korong, char c)
 }
 int Csempe_szamol(Kozos kozos, char c)
 {
-	int index = c - 16;
-	return kozos.elemek[index];
+	return kozos.elemek[c - 65];
+}
+int Pontozas(Player player, int sor, int oszlop)
+{
+	int pont = 1;
+
+	for (int i = oszlop+1; i < player.fal_count; i++) { //jobb
+		if (player.fal[sor][i] != '-') pont++;
+		else break;
+	}
+	for (int i = oszlop-1; i >= 0; i--) { //bal
+		if (player.fal[sor][i] != '-') pont++;
+		else break;
+	}
+	for (int i = sor+1; i < player.fal_count; i++) { //le
+		if (player.fal[i][oszlop] != '-') pont++;
+		else break;
+	}
+	for (int i = sor-1; i >= 0; i--) {
+		if (player.fal[i][oszlop] != '-') pont++; //fel
+		else break;
+	}
+	
+	return pont;
+}
+int Buntetopontok(Player* player)
+{
+	int bunteto = 0;
+
+	for (int i = 0; i < player->padlovonal_count; i++)
+	{
+		if (player->padlovonal[i] != '-') 
+		{
+			if (i == 0 || i == 1) bunteto += 1;
+			else if (i > 1 && i < 5) bunteto += 2;
+			else bunteto += 3;
+			player->padlovonal[i] = '-';
+		}
+		else break;
+	}
+
+	return bunteto;
+}
+void Scoreboard(Player* players, int jatekosszam)
+{
+	cout << "\n\n";
+	int index = 0;
+	
+	for (int i = 0; i < jatekosszam; i++)
+	{
+		index = 0;
+		for (int j = 0; j < jatekosszam; j++)
+		{
+			if (players[j].pontszam > players[index].pontszam) index = j;
+		}
+		cout << "\n" << i + 1 << ". hely: " << index << ". jatekos - " << players[index].pontszam << " pont";
+		players[index].pontszam = 0;
+	}
 }
 
+// 2. feladat
 Korong* Create_korongok(int jatekosszam)
 {
 	int korongszam = 5;
 
 	switch (jatekosszam)
-	{ //case 2 és default folosleges?
-	case 2:
-		korongszam = 5;
-		break;
+	{
 	case 3:
 		korongszam = 7;
 		break;
@@ -114,11 +166,13 @@ Korong* Create_korongok(int jatekosszam)
 		break;
 	default:
 		korongszam = 5;
+		break;
 	}
 
 	return new Korong[korongszam];
 }
 
+// 3. feladat
 struct Game
 {
 	Korong* korongok;
@@ -155,12 +209,15 @@ struct Game
 	~Game() { delete[] korongok; }
 };
 
-void Draw_korongok(Game* game) //mutató, vagy Game?
+// 4. feladat
+void Draw_korongok(Game* game)
 {
+	cout << "\n";
+
 	for (int i = 0; i < game->korongok_count; i++)
 	{
 		cout << i + 1 << ".\t\t";
-		for (int j = 0; j < game->korongok->elemek_count; j++) //?
+		for (int j = 0; j < game->korongok->elemek_count; j++)
 		{
 			cout << game->korongok[i].elemek[j];
 		}
@@ -172,33 +229,14 @@ void Draw_korongok(Game* game) //mutató, vagy Game?
 	{
 		for (int j = 0; j < game->kozos.elemek[i]; j++)
 		{
-			switch (i)
-			{
-			case 0:
-				cout << "A";
-				break;
-			case 1:
-				cout << "B";
-				break;
-			case 2:
-				cout << "C";
-				break;
-			case 3:
-				cout << "D";
-				break;
-			case 4:
-				cout << "E";
-				break;
-			case 5:
-				cout << "X";
-				break;
-			}
+			if (i == 5) cout << "X";
+			else cout << char(i + 65);
 		}
-		//if (game->kozos.jelzo) cout << "X";
 	}
 
 }
 
+// 1|5. feladat
 char Huzas(Game* game)
 {
 	if (Sum(game->zsak, game->zsak_count) == 0)
@@ -222,22 +260,23 @@ char Huzas(Game* game)
 		}
 		else min += game->zsak[i];
 	}
-	return 'A'; //return path
+	return 'A';
 }
 
+// 6. feladat
 void Elokeszit(Game* game)
 {
 	for (int i = 0; i < game->korongok_count; i++)
 	{
-		for (int j = 0; j < game->korongok->elemek_count; j++)
+		for (int j = 0; j < game->korongok[i].elemek_count; j++)
 		{
 			game->korongok[i].elemek[j] = Huzas(game);
 		}
 	}
 	game->kozos.elemek[5] = 1;
-	game->kozos.jelzo = true;
 }
 
+// 7. feladat
 Player* Create_jatekosok(int jatekosszam)
 {
 	Player* players = new Player[jatekosszam];
@@ -269,9 +308,10 @@ Player* Create_jatekosok(int jatekosszam)
 	return players;
 }
 
+// 8. feladat
 void Draw_player(Player player)
 {
-	cout << "\n";
+	cout << "\n\n";
 
 	cout << "1 2 3 4 5     Pontok: " << player.pontszam << "\n";
 
@@ -296,15 +336,17 @@ void Draw_player(Player player)
 		else cout << " " << player.padlovonal[i] << " ";
 	}
 	cout << "\n";
-	cout << "-1 -1 -2 -2 -2 -3 -3";
+	cout << "-1 -1 -2 -2 -2 -3 -3\n\n";
 }
 
+// 9. feladat
 void Csempevalaszto(Player* player, Game* game)
 {
 	int valasz_korong;
 	char valasz_szin;
 	int valasz_mintasor;
 	bool ok;
+	int csempe_c;
 
 	do
 	{
@@ -312,10 +354,10 @@ void Csempevalaszto(Player* player, Game* game)
 		cout << "Valassz korongot: ";
 		cin >> valasz_korong;
 
-		if (valasz_korong < 0 || valasz_korong > game->korongok_count) ok = false;
-		else if (valasz_korong != 0 && Empty_korong(game->korongok[valasz_korong])) ok = false;
-		else if (Empty_kozos(game->kozos)) ok = false;
-	} while (!ok); //Helyes szám: vagy korong, vagy közös
+		if (valasz_korong < 0 || valasz_korong > game->korongok_count) { ok = false; }
+		else if (valasz_korong != 0 && Empty_korong(game->korongok[valasz_korong - 1])) { ok = false; }
+		else if (valasz_korong == 0 && Empty_kozos(game->kozos)) { ok = false; }
+	} while (!ok); // Helyes-e a korong, és van-e tartalma
 
 	do
 	{
@@ -324,68 +366,89 @@ void Csempevalaszto(Player* player, Game* game)
 		cin >> valasz_szin;
 
 		valasz_szin = toupper(valasz_szin);
-		if (valasz_szin < 'A' || valasz_szin > 'E') ok = false;
-		else if (valasz_korong != 0 && !Korong_contains(game->korongok[valasz_korong], valasz_szin)) ok = false;
-		else if (!Kozos_contains(game->kozos, valasz_szin)) ok = false;
-	} while (!ok); //Helyes szám: A-B-C-D-E
+		if (valasz_szin < 'A' || valasz_szin > 'E') { ok = false; }
+		else if (valasz_korong != 0 && !Korong_contains(game->korongok[valasz_korong - 1], valasz_szin)) { ok = false; }
+		else if (valasz_korong == 0 && !Kozos_contains(game->kozos, valasz_szin)) { ok = false; }
+	} while (!ok); //Helyes-e a csempe színe, és tartalmazza-e a korong
+
+	// Csempéket megszámolni
+	if (valasz_korong == 0) csempe_c = Csempe_szamol(game->kozos, valasz_szin);
+	else csempe_c = Csempe_szamol(game->korongok[valasz_korong - 1], valasz_szin);
 
 	do
 	{
 		ok = true;
-		cout << "Valassz mintasort: ";
+		cout << "Valassz mintasort(" << csempe_c << "): ";
 		cin >> valasz_mintasor;
 
-		if (valasz_mintasor < 0 || valasz_mintasor > player->mintasorok_count) ok = false;
-		else if (valasz_mintasor != 0 && !Helyes_csempe(*player, valasz_szin, valasz_mintasor)) ok = false;
-	} while (!ok); //Helyes szám: egy mintasor sorszáma
+		if (valasz_mintasor < 0 || valasz_mintasor > player->mintasorok_count) { ok = false; }
+		else if (valasz_mintasor != 0 && !Helyes_csempe(*player, valasz_szin, valasz_mintasor - 1)) { ok = false; }
+		//else if (valasz_mintasor != 0 && csempe_c > Mintasor_szabadhely(*player, valasz_mintasor - 1)) { ok = false; }
+	} while (!ok); // Helyes-e a mintasor száma (és lehet-e oda rakni a választott csempébõl)
 
 
-
-	// Csempeket megszamolni
-	int csempe_c;
-	bool kezdocsempe = false;
-	if (valasz_korong == 0) csempe_c = Csempe_szamol(game->kozos, valasz_szin);
-	else csempe_c = Csempe_szamol(game->korongok[valasz_korong], valasz_szin);
 
 	// Korongrol/kozosbol elvenni a csempeket
-	if (valasz_korong == 0) game->kozos.elemek[valasz_szin - 17] = 0;
+	if (valasz_korong == 0) game->kozos.elemek[valasz_szin - 65] = 0;
 	else {
-		for (int i = 0; i < game->korongok[valasz_korong].elemek_count; i++) {
-			if (game->korongok->elemek[i] == valasz_szin) game->csempek.elemek[i] = '-';
+		for (int i = 0; i < game->korongok[valasz_korong - 1].elemek_count; i++) {
+			if (game->korongok[valasz_korong - 1].elemek[i] == valasz_szin) game->korongok[valasz_korong - 1].elemek[i] = '-';
+			else {
+				game->kozos.elemek[game->korongok[valasz_korong - 1].elemek[i] - 65]++;
+				game->korongok[valasz_korong - 1].elemek[i] = '-';
+			}
 		}
 	}
 
 	// Kezdojatekos jelzo elvetele, padlovonalra kuldese (ha nincs teli)
 	if (valasz_korong == 0 && game->kozos.elemek[5] >= 1) {
 		game->kozos.elemek[5] = 0;
-		kezdocsempe = true; //ez még jó lehet valamire
 		for (int i = 0; i < player->padlovonal_count; i++) {
 			if (player->padlovonal[i] == '-') player->padlovonal[i] = 'X';
+			break;
 		}
 	}
 
 	// Csempek a jatekos mintasorara
-	for (int i = 0; i < valasz_mintasor; i++) {
-		if (player->mintasorok[valasz_mintasor][i] == '-') {
-			player->mintasorok[valasz_mintasor][i] = valasz_szin;
-			csempe_c--;
+	if (valasz_mintasor != 0)
+	{
+		for (int i = 0; i < valasz_mintasor; i++) { //valasz_mintasor -> egyben az is, hogy hány csempe mehet a mintasorra összesen
+			if (player->mintasorok[valasz_mintasor - 1][i] == '-' && csempe_c > 0) {
+				player->mintasorok[valasz_mintasor - 1][i] = valasz_szin;
+				csempe_c--;
+			}
 		}
 	}
+	else //Csempék a játékos padlóvonalára (ha szándékosan oda küldi)
+	{
+		for (int i = 0; i < player->padlovonal_count; i++)
+		{
+			if (player->padlovonal[i] == '-')
+			{
+				player->padlovonal[i] = valasz_szin;
+				csempe_c--;
+			}
+			if (csempe_c == 0) break;
+		}
+	}
+
 
 	// Felesleges csempek a padlovonalra
 	if (csempe_c > 0) {
 		for (int i = 0; i < player->padlovonal_count; i++) {
 			if (player->padlovonal[i] == '-') player->padlovonal[i] = valasz_szin;
 			csempe_c--;
+			if (csempe_c == 0) break;
 		}
 	}
 
 	// Maradek csempeket a dobozba eldobni
 	if (csempe_c > 0) {
-		game->doboz[valasz_szin - 17] += csempe_c;
+		game->doboz[valasz_szin - 65] += csempe_c;
 	}
 }
 
+// 10. feladat
 void Csempe_kezeles(Player* player, Game* game)
 {
 	bool ok;
@@ -393,35 +456,55 @@ void Csempe_kezeles(Player* player, Game* game)
 
 	for (int i = 0; i < player->mintasorok_count; i++)
 	{
-		if (player->mintasorok[i][i] != '-') //teli sor ellenorzese
+		if (player->mintasorok[i][i] != '-') //ha az utolsó [i][i] csempe nem üres, teli van a sor
 		{
 			do
 			{
 				ok = true;
 
-				cout << i + 1 << ". sorból melyik oszlopba? ";
+				Draw_player(*player);
+				cout << "\n" << i + 1 << ". sor, valassz oszlopot: ";
 				cin >> oszlop;
 
-				if (oszlop < 1 || oszlop > 5) ok = false;
-				else 
+				if (oszlop < 1 || oszlop > 5) ok = false; //ha hibás input
+				else
 				{
 					for (int j = 0; j < player->fal_count; j++)
 					{
-						if (player->fal[j][oszlop] == player->mintasorok[i][0]) ok = false;
+						if (player->fal[j][oszlop - 1] == player->mintasorok[i][0]) ok = false; //az oszlopban van-e az adott csempébõl
 					}
+					if (player->fal[i][oszlop - 1] != '-') ok = false; //van-e már valami az adott helyen
 				}
 			} while (!ok);
 
-			game->doboz[player->mintasorok[i][0] - 17] += i - 1;
-			player->fal[i][oszlop] = player->mintasorok[i][0];
-			for (int j = 0; j < i; j++)
+			game->doboz[player->mintasorok[i][0] - 65] += i - 1;
+			player->fal[i][oszlop - 1] = player->mintasorok[i][0];
+			player->pontszam += Pontozas(*player, i, oszlop - 1);
+			for (int j = 0; j <= i; j++)
 			{
 				player->mintasorok[i][j] = '-';
 			}
 		}
+		else //ha nem lett meg a mintasor, szimpla ürítése a dobozba
+		{
+			for (int j = 0; j < i; j++)
+			{
+				if (player->mintasorok[i][j] != '-')
+				{
+					game->doboz[player->mintasorok[i][j] - 65]++;
+					player->mintasorok[i][j] = '-';
+				}
+			}
+		}
 	}
+
+	player->pontszam -= Buntetopontok(player);
+	if (player->pontszam < 0) player->pontszam = 0;
+
+	cout << "-----------------------------";
 }
 
+// 11. feladat
 int Teli_sorok(Player* player)
 {
 	int n = 0;
@@ -442,7 +525,6 @@ int Teli_sorok(Player* player)
 	}
 	return n;
 }
-
 int Teli_oszlopok(Player* player)
 {
 	int n = 0;
@@ -453,7 +535,7 @@ int Teli_oszlopok(Player* player)
 		teli = true;
 		for (int j = 0; j < player->fal_count; j++)
 		{
-			if (player->fal[j][i] == '-');
+			if (player->fal[j][i] == '-')
 			{
 				teli = false;
 				break;
@@ -464,12 +546,13 @@ int Teli_oszlopok(Player* player)
 	return n;
 }
 
-void Bonusz(Player* player, Game* game)
+// 12. feladat
+int Bonusz(Player* player, Game* game)
 {
 	int bonuszpontok = 0;
 
 	bonuszpontok += Teli_sorok(player) * 2;
-	bonuszpontok += Teli_oszlopok(player) * 2;
+	bonuszpontok += Teli_oszlopok(player) * 7;
 
 	int csempek_szama[5] = { 0, 0, 0, 0, 0 };
 
@@ -477,20 +560,48 @@ void Bonusz(Player* player, Game* game)
 	{
 		for (int j = 0; j < player->fal_count; j++)
 		{
-			if (player->fal[i][j] != '-') csempek_szama[player->fal[i][j] - 17]++;
+			if (player->fal[i][j] != '-') csempek_szama[player->fal[i][j] - 65]++;
 		}
 	}
-
+	// ezt a kettõt egybe lehetne majd vonni
 	for (int i = 0; i < 5; i++)
 	{
 		if (csempek_szama[i] >= 5) bonuszpontok += 10;
 	}
+
+	return bonuszpontok;
+}
+
+bool Check_jatekvege(Player* players, int jatekosszam)
+{
+	for (int i = 0; i < jatekosszam; i++)
+	{
+		if (Teli_oszlopok(&players[jatekosszam]) >= 1) return true;
+	}
+	return false;
+}
+bool Check_korvege(Game* game)
+{
+	for (int i = 0; i < game->kozos.elemek_count; i++)
+	{
+		if (game->kozos.elemek[i] > 0) return false;
+	}
+	for (int i = 0; i < game->korongok_count; i++)
+	{
+		for (int j = 0; j < game->korongok[i].elemek_count; j++)
+		{
+			if (game->korongok[i].elemek[j] != '-') return false;
+		}
+	}
+	return true;
 }
 
 int main()
 {
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 	int jatekosszam;
+	bool jatekvege;
+	int jelenlegi_jatekos = 0;
 
 	do
 	{
@@ -499,19 +610,52 @@ int main()
 	} while (jatekosszam < 2 || jatekosszam > 4);
 
 	Game game(jatekosszam);
-	Player player;
-
-	Create_korongok(jatekosszam);
-	Elokeszit(&game);
-	Draw_korongok(&game);
 	Player* players = Create_jatekosok(jatekosszam);
-	Draw_player(players[0]);
 
-	Csempevalaszto(&players[0], &game);
+	do
+	{
+		jatekvege = false;
+
+		Create_korongok(jatekosszam);
+		Elokeszit(&game);
+
+		do
+		{
+			system("cls"); // ezt ki kell szedni
+			if (jelenlegi_jatekos >= jatekosszam) jelenlegi_jatekos = 0;
+			cout << "---- " << jelenlegi_jatekos + 1 << ". JATEKOS -------------------------";
+			//cout << "\n" << jelenlegi_jatekos + 1 << ". jatekos: \n";
+			Draw_korongok(&game);
+			Draw_player(players[jelenlegi_jatekos]);
+			Csempevalaszto(&players[jelenlegi_jatekos], &game);
+			Draw_player(players[jelenlegi_jatekos]);
+			jelenlegi_jatekos++;
+		} while (!Check_korvege(&game));
+		for (int i = 0; i < jatekosszam; i++)
+		{
+			system("cls"); //ezt ki kell szedni
+			cout << "---- " << i + 1 << ". JATEKOS -------------------------";
+			Csempe_kezeles(&players[i], &game);
+		}
+	} while (!Check_jatekvege(players, jatekosszam));
+
+	cout << "\n\n";
+	for (int i = 0; i < jatekosszam; i++)
+	{
+		cout << i + 1 << ". jatekos: " << Bonusz(&players[i], &game) << " bonuszpont.";
+		players[i].pontszam += Bonusz(&players[i], &game);
+	}
+
+	Scoreboard(players, jatekosszam);
 }
 
-// A-17 dolgok
-// Csempevalaszo javitani
-// Csempe kezelest atnezni
-// Bonuszt atnezni
-// Az egesz kodot atnezni es kiszepiteni
+// jatek veget leellenorizni
+// Warningokat kijavitani
+// utf8 karakterek
+// Normális kiírás (sortörések) - meg mindig
+// A "Valassz szint: " resz neha bugos
+// Csempe kezelés után kié a következõ lépés?
+// Néha nem von le büntetõpontot?
+// memoria felszabaditas
+// csempevalaszto hibaesetek
+// csaempekezeles hibaesetek
