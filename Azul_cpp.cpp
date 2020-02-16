@@ -213,7 +213,7 @@ void Scoreboard(Player* players, int jatekosszam)
 
 	for (int i = 0; i < jatekosszam; i++)
 	{
-		players[i].vegeredmeny = players[i].pontszam + Teli_sorok(&players[i]) / 10;
+		players[i].vegeredmeny = players[i].pontszam + Teli_sorok(&players[i]) / 10.0f;
 	}
 	Buborek(players, jatekosszam);
 
