@@ -374,10 +374,7 @@ Player* Create_jatekosok(int jatekosszam)
 		{
 			for (int k = 0; k < players->fal_count; k++) 
 			{
-				if (j == 1) players[i].fal[j][k] = k + 65;
-				else {
-					players[i].fal[j][k] = '-';
-				}
+				players[i].fal[j][k] = '-';
 			}
 		}
 
