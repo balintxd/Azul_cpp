@@ -27,7 +27,6 @@ struct Kozos
 	int elemek[6] = { 0, 0, 0, 0, 0, 0 };
 	int elemek_count = 6;
 };
-
 struct Player
 {
 	char fal[5][5];
@@ -37,7 +36,76 @@ struct Player
 	char mintasorok[5][5];
 	int mintasorok_count = 5;
 	int pontszam = 0;
+
+	int id;
+	float vegeredmeny;
 };
+
+// 11. feladat
+int Teli_sorok(Player* player)
+{
+	int n = 0;
+	bool teli = true;
+
+	for (int i = 0; i < player->fal_count; i++)
+	{
+		teli = true;
+		for (int j = 0; j < player->fal_count; j++)
+		{
+			if (player->fal[i][j] == '-')
+			{
+				teli = false;
+				break;
+			}
+		}
+		if (teli) n++;
+	}
+	return n;
+}
+int Teli_oszlopok(Player* player)
+{
+	int n = 0;
+	bool teli = true;
+
+	for (int i = 0; i < player->fal_count; i++)
+	{
+		teli = true;
+		for (int j = 0; j < player->fal_count; j++)
+		{
+			if (player->fal[j][i] == '-')
+			{
+				teli = false;
+				break;
+			}
+		}
+		if (teli) n++;
+	}
+	return n;
+}
+
+void Csere(Player* xp, Player* yp)
+{
+	Player temp = *xp;
+	*xp = *yp;
+	*yp = temp;
+}
+void Buborek(Player* players, int jatekosszam)
+{
+	int i;
+	int	j;
+
+	for (i = 0; i < jatekosszam - 1; i++)
+	{
+		for (j = 0; j < jatekosszam - i - 1; j++)
+		{
+			if (players[j].vegeredmeny > players[j + 1].vegeredmeny)
+			{
+				Csere(&players[j], &players[j + 1]);
+			}
+		}
+	}
+		
+}
 
 bool Empty_korong(Korong korong)
 {
@@ -142,18 +210,24 @@ int Buntetopontok(Player* player)
 void Scoreboard(Player* players, int jatekosszam)
 {
 	cout << "\n\n";
-	int index = 0;
-	
+
 	for (int i = 0; i < jatekosszam; i++)
 	{
-		index = 0;
-		for (int j = 0; j < jatekosszam; j++)
-		{
-			if (players[j].pontszam > players[index].pontszam) index = j;
-		}
-		cout << "\n" << i + 1 << ". hely: " << index + 1 << ". jatekos - " << players[index].pontszam << " pont";
-		players[index].pontszam = 0;
+		players[i].vegeredmeny = players[i].pontszam + Teli_sorok(&players[i]) / 10;
 	}
+	Buborek(players, jatekosszam);
+
+	int jel_hely = 1;
+	
+	cout << "\n" << jel_hely << ". hely: " << players[jatekosszam - 1].id + 1 << ". jatekos - " << players[jatekosszam - 1].pontszam << " pont";
+	for (int i = jatekosszam - 2; i >= 0; i--)
+	{
+		if (players[i].vegeredmeny != players[i + 1].vegeredmeny) jel_hely = jatekosszam - i;
+		cout << "\n" << jel_hely << ". hely: " << players[i].id + 1 << ". jatekos - " << players[i].pontszam << " pont";
+	}
+
+
+	cout << "\n==============================\n";
 }
 void cinclear()
 {
@@ -293,10 +367,18 @@ Player* Create_jatekosok(int jatekosszam)
 
 	for (int i = 0; i < jatekosszam; i++)
 	{
+		players[i].id = i;
+
 		//Fal feltöltése
 		for (int j = 0; j < players->fal_count; j++)
 		{
-			for (int k = 0; k < players->fal_count; k++) players[i].fal[j][k] = '-';
+			for (int k = 0; k < players->fal_count; k++) 
+			{
+				if (j == 1) players[i].fal[j][k] = k + 65;
+				else {
+					players[i].fal[j][k] = '-';
+				}
+			}
 		}
 
 		//Padlóvonal feltöltése
@@ -448,8 +530,11 @@ void Csempevalaszto(Player* player, Game* game)
 	// Felesleges csempek a padlovonalra
 	if (csempe_c > 0) {
 		for (int i = 0; i < player->padlovonal_count; i++) {
-			if (player->padlovonal[i] == '-') player->padlovonal[i] = valasz_szin;
-			csempe_c--;
+			if (player->padlovonal[i] == '-')
+			{
+				player->padlovonal[i] = valasz_szin;
+				csempe_c--;
+			}
 			if (csempe_c == 0) break;
 		}
 	}
@@ -512,71 +597,29 @@ void Csempe_kezeles(Player* player, Game* game)
 	if (player->pontszam < 0) player->pontszam = 0;
 
 	cout << "-----------------------------\n";
-}
 
-// 11. feladat
-int Teli_sorok(Player* player)
-{
-	int n = 0;
-	bool teli = true;
-
-	for (int i = 0; i < player->fal_count; i++)
-	{
-		teli = true;
-		for (int j = 0; j < player->fal_count; j++)
-		{
-			if (player->fal[i][j] == '-')
-			{
-				teli = false;
-				break;
-			}
-		}
-		if (teli) n++;
-	}
-	return n;
-}
-int Teli_oszlopok(Player* player)
-{
-	int n = 0;
-	bool teli = true;
-
-	for (int i = 0; i < player->fal_count; i++)
-	{
-		teli = true;
-		for (int j = 0; j < player->fal_count; j++)
-		{
-			if (player->fal[j][i] == '-')
-			{
-				teli = false;
-				break;
-			}
-		}
-		if (teli) n++;
-	}
-	return n;
+	Draw_player(*player);
 }
 
 // 12. feladat
 int Bonusz(Player* player, Game* game)
 {
 	int bonuszpontok = 0;
+	int csempek_szama[5] = { 0, 0, 0, 0, 0 };
 
 	bonuszpontok += Teli_sorok(player) * 2;
 	bonuszpontok += Teli_oszlopok(player) * 7;
-
-	int csempek_szama[5] = { 0, 0, 0, 0, 0 };
 
 	for (int i = 0; i < player->fal_count; i++)
 	{
 		for (int j = 0; j < player->fal_count; j++)
 		{
-			if (player->fal[i][j] != '-') csempek_szama[player->fal[i][j] - 65]++;
+			if (player->fal[i][j] != '-')
+			{
+				csempek_szama[player->fal[i][j] - 65]++;
+				if (csempek_szama[player->fal[i][j] - 65] == 5) bonuszpontok += 10;
+			}
 		}
-	}
-	// ezt a kettõt egybe lehetne majd vonni
-	for (int i = 0; i < 5; i++)
-	{
-		if (csempek_szama[i] >= 5) bonuszpontok += 10;
 	}
 
 	return bonuszpontok;
@@ -586,7 +629,7 @@ bool Check_jatekvege(Player* players, int jatekosszam)
 {
 	for (int i = 0; i < jatekosszam; i++)
 	{
-		if (Teli_oszlopok(&players[i]) > 0) return true;
+		if (Teli_sorok(&players[i]) > 0) return true;
 	}
 	return false;
 }
@@ -631,39 +674,36 @@ int main()
 		Create_korongok(jatekosszam);
 		Elokeszit(&game);
 
+		//Csempék a mintavonalra helyezése
 		do
 		{
 			if (jelenlegi_jatekos >= jatekosszam) jelenlegi_jatekos = 0;
 			cout << "---- " << jelenlegi_jatekos + 1 << ". JATEKOS -------------------------";
-			//cout << "\n" << jelenlegi_jatekos + 1 << ". jatekos: \n";
 			Draw_korongok(&game);
 			Draw_player(players[jelenlegi_jatekos]);
 			Csempevalaszto(&players[jelenlegi_jatekos], &game);
 			Draw_player(players[jelenlegi_jatekos]);
 			jelenlegi_jatekos++;
 		} while (!Check_korvege(&game));
+
+		//Csempék mintavonalról a faljra helyezése
 		for (int i = 0; i < jatekosszam; i++)
 		{
 			cout << "---- " << i + 1 << ". JATEKOS -------------------------";
 			Csempe_kezeles(&players[i], &game);
 		}
+
 	} while (!Check_jatekvege(players, jatekosszam));
 
-	cout << "\n\n";
+	//Bónuszpontok kiírása
+	cout << "==============================";
 	for (int i = 0; i < jatekosszam; i++)
 	{
 		cout << "\n" << i + 1 << ". jatekos: " << Bonusz(&players[i], &game) << " bonuszpont";
 		players[i].pontszam += Bonusz(&players[i], &game);
 	}
 
+	//Végsõ pontok kiírása
 	Scoreboard(players, jatekosszam);
 }
 
-// Warningokat kijavitani
-// Normális kiírás (sortörések) - meg mindig
-// A "Valassz szint: " resz neha bugos - mar nem biztos
-// Csempe kezelés után kié a következõ lépés?
-// Néha nem von le büntetõpontot?
-// neha nem teszi a padlovonalra a felesleges csempeket
-// oszlop helyett sort kell nézni a jatekvegenel
-// pontegyenlosegkor az nyer akinek tobb sora van (tobb ugyanolyan helyezett is)
