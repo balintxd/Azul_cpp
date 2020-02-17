@@ -1,6 +1,7 @@
 #include <iostream>
 #include <numeric>
 #include <time.h>
+#include <cstdlib>
 
 using namespace std;
 
@@ -241,12 +242,11 @@ Korong* Create_korongok(int jatekosszam)
 	case 4:
 		korongszam = 9;
 		break;
-	default:
-		korongszam = 5;
-		break;
 	}
 
-	return new Korong[korongszam];
+	Korong* temp = new Korong[korongszam];
+	if (temp == nullptr) exit(EXIT_FAILURE);
+	return temp;
 }
 
 // 3. feladat
@@ -294,7 +294,7 @@ void Draw_korongok(Game* game)
 	for (int i = 0; i < game->korongok_count; i++)
 	{
 		cout << i + 1 << ".\t\t";
-		for (int j = 0; j < game->korongok->elemek_count; j++)
+		for (int j = 0; j < game->korongok[i].elemek_count; j++)
 		{
 			cout << game->korongok[i].elemek[j];
 		}
@@ -310,7 +310,6 @@ void Draw_korongok(Game* game)
 			else cout << char(i + 65);
 		}
 	}
-
 }
 
 // 1|5. feladat
@@ -357,6 +356,7 @@ void Elokeszit(Game* game)
 Player* Create_jatekosok(int jatekosszam)
 {
 	Player* players = new Player[jatekosszam];
+	if (players == nullptr) exit(EXIT_FAILURE);
 
 	for (int i = 0; i < jatekosszam; i++)
 	{
@@ -493,8 +493,11 @@ void Csempevalaszto(Player* player, Game* game)
 	if (valasz_korong == 0 && game->kozos.elemek[5] >= 1) {
 		game->kozos.elemek[5] = 0;
 		for (int i = 0; i < player->padlovonal_count; i++) {
-			if (player->padlovonal[i] == '-') player->padlovonal[i] = 'X';
-			break;
+			if (player->padlovonal[i] == '-')
+			{
+				player->padlovonal[i] = 'X';
+				break;
+			}
 		}
 	}
 
@@ -663,7 +666,6 @@ int main()
 
 	do
 	{
-		Create_korongok(jatekosszam);
 		Elokeszit(&game);
 
 		//Csempék a mintavonalra helyezése
@@ -678,7 +680,7 @@ int main()
 			jelenlegi_jatekos++;
 		} while (!Check_korvege(&game));
 
-		//Csempék mintavonalról a faljra helyezése
+		//Csempék mintavonalról a falra helyezése
 		for (int i = 0; i < jatekosszam; i++)
 		{
 			cout << "---- " << i + 1 << ". JATEKOS -------------------------";
