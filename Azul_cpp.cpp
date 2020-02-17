@@ -83,11 +83,13 @@ int Teli_oszlopok(Player* player)
 	return n;
 }
 
-void Csere(Player* xp, Player* yp)
+
+// Segédfüggvények
+void Csere(Player* player_a, Player* player_b)
 {
-	Player temp = *xp;
-	*xp = *yp;
-	*yp = temp;
+	Player p = *player_a;
+	*player_a = *player_b;
+	*player_b = p;
 }
 void Buborek(Player* players, int jatekosszam)
 {
@@ -106,7 +108,6 @@ void Buborek(Player* players, int jatekosszam)
 	}
 		
 }
-
 bool Empty_korong(Korong korong)
 {
 	for (int i = 0; i < korong.elemek_count; i++)
@@ -374,6 +375,10 @@ Player* Create_jatekosok(int jatekosszam)
 		{
 			for (int k = 0; k < players->fal_count; k++) 
 			{
+				// DEBUG
+				// if (j == 2) players[i].fal[j][k] = k + 65;
+				// else players[i].fal[j][k] = '-';
+
 				players[i].fal[j][k] = '-';
 			}
 		}
@@ -702,5 +707,7 @@ int main()
 
 	//Végsõ pontok kiírása
 	Scoreboard(players, jatekosszam);
+
+	delete[] players;
 }
 
