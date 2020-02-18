@@ -165,7 +165,7 @@ int Csempe_szamol(Kozos* kozos, char c)
 int Pontozas(Player* player, int sor, int oszlop)
 {
 	int pont = 1;
-	bool vizszintes = false, fuggologes = false;
+	bool vizszintes = false, fuggoleges = false;
 
 	for (int i = oszlop + 1; i < player->fal_count; i++) { //jobb
 		if (player->fal[sor][i] != '-') {
@@ -184,19 +184,19 @@ int Pontozas(Player* player, int sor, int oszlop)
 	for (int i = sor + 1; i < player->fal_count; i++) { //le
 		if (player->fal[i][oszlop] != '-') {
 			pont++;
-			fuggologes = true;
+			fuggoleges = true;
 		}
 		else break;
 	}
 	for (int i = sor - 1; i >= 0; i--) { //fel
 		if (player->fal[i][oszlop] != '-') {
 			pont++; 
-			fuggologes = true;
+			fuggoleges = true;
 		}
 		else break;
 	}
 
-	if (vizszintes && fuggologes) pont++;
+	if (vizszintes && fuggoleges) pont++;
 	return pont;
 }
 int Buntetopontok(Player* player)
